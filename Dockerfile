@@ -4,7 +4,7 @@ FROM php:8.2-apache
 RUN a2enmod rewrite
 
 # Instalar extensões do PHP necessárias (ex: pdo_mysql, mysqli)
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN docker-php-ext-install pdo pdo_mysql mysqli 
 
 # Configurar ServerName para evitar avisos no apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf

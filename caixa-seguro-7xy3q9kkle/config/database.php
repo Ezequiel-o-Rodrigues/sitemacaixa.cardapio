@@ -1,10 +1,18 @@
 <?php
 class Database {
-    private $host = "localhost";
-    private $db_name = "u903648047_sis_caixa";
-    private $username = "u903648047_juniior";
-    private $password = "Ezequiel_2014";
+    private $host;
+    private $db_name;
+    private $username;
+    private $password;
     public $conn;
+
+    public function __construct() {
+        // Se a variável de ambiente existir (ex: no Render), usa ela. Se não, usa a padrão local/hostinger.
+        $this->host = getenv('DB_HOST') !== false ? getenv('DB_HOST') : "localhost";
+        $this->db_name = getenv('DB_NAME') !== false ? getenv('DB_NAME') : "u903648047_sis_caixa";
+        $this->username = getenv('DB_USER') !== false ? getenv('DB_USER') : "u903648047_juniior";
+        $this->password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : "Ezequiel_2014";
+    }
     
     public function getConnection() {
         $this->conn = null;
