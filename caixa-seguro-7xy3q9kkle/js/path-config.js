@@ -6,8 +6,8 @@ class PathConfig {
         if (path.includes('/modules/')) {
             return path.split('/modules/')[0];
         }
-        if (path.includes('/gestaointeli-jnr/')) {
-            return '/gestaointeli-jnr';
+        if (path.includes('/caixa-seguro-7xy3q9kkle/')) {
+            return '/caixa-seguro-7xy3q9kkle';
         }
         return '';
     }

@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/auth.php';
 
 function checkAuth() {
     if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['usuario_logado'])) {
-        header('Location: /gestaointeli-jnr/login.php');
+        header('Location: /caixa-seguro-7xy3q9kkle/login.php');
         exit;
     }
     
