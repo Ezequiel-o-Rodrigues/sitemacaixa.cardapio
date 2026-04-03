@@ -7,6 +7,37 @@ function formatarMoeda($valor) {
     return 'R$ ' . number_format($valor, 2, ',', '.');
 }
 
+/**
+ * Retorna configuração do sistema pelo nome da chave.
+ * Usa cache estático para evitar múltiplas queries na mesma requisição.
+ */
+function getConfig($chave, $padrao = null) {
+    static $cache = [];
+    if (isset($cache[$chave])) return $cache[$chave];
+
+    try {
+        $database = new Database();
+        $db = $database->getConnection();
+        $stmt = $db->prepare("SELECT valor FROM configuracoes_sistema WHERE chave = ?");
+        $stmt->execute([$chave]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $cache[$chave] = $row ? $row['valor'] : $padrao;
+    } catch (Exception $e) {
+        $cache[$chave] = $padrao;
+    }
+    return $cache[$chave];
+}
+
+/** Nome do estabelecimento configurável */
+function getNomeEstabelecimento() {
+    return getConfig('nome_estabelecimento', 'Meu Estabelecimento');
+}
+
+/** Nome do sistema */
+function getNomeSistema() {
+    return getConfig('nome_sistema', 'GestaoInteli');
+}
+
 function getCategorias() {
     $database = new Database();
     $db = $database->getConnection();

@@ -75,40 +75,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - GestãoInteli JNR</title>
+    <title>Login - GestaoInteli</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #334155 0%, #4f46e5 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .login-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             overflow: hidden;
         }
         .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #334155 0%, #4f46e5 100%);
             color: white;
             padding: 2rem;
             text-align: center;
         }
+        .login-header h2 { font-weight: 700; letter-spacing: -0.02em; }
+        .login-header p { opacity: 0.85; font-size: 0.9rem; }
         .login-body {
             padding: 2rem;
         }
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
             border: none;
             color: white;
             padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
         .btn-login:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+        }
+        .form-control:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
         }
     </style>
 </head>
@@ -118,8 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-md-6 col-lg-4">
                 <div class="login-card">
                     <div class="login-header">
-                        <h2><i class="bi bi-shop"></i> GestãoInteli JNR</h2>
-                        <p class="mb-0">Sistema de Gestão de Restaurante</p>
+                        <h2><i class="bi bi-shop"></i> GestaoInteli</h2>
+                        <p class="mb-0">Sistema de Gestao Comercial</p>
                     </div>
                     <div class="login-body">
                         <?php if ($error): ?>

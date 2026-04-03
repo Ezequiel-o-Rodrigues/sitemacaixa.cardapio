@@ -32,6 +32,10 @@ try {
     if (!$produto_id || !$quantidade_perdida || !$valor_perda) {
         throw new Exception('Dados da perda são obrigatórios');
     }
+
+    if ($quantidade_perdida < 0 || $valor_perda < 0) {
+        throw new Exception('Valores de perda não podem ser negativos');
+    }
     
     // Verificar se já existe registro para este produto nesta data
     $check_stmt = $db->prepare("

@@ -17,14 +17,57 @@ try {
     $data_inicio = $_GET['data_inicio'] ?? date('Y-m-01');
     $data_fim = $_GET['data_fim'] ?? date('Y-m-d');
     
-    // PASSO 1: Chamar a stored procedure para calcular perdas
-    $stmt = $db->prepare("CALL relatorio_perdas_periodo_correto(:data_inicio, :data_fim)");
+    // PASSO 1: Calcular perdas diretamente via SQL (sem stored procedure)
+    $stmt = $db->prepare("
+        SELECT
+            p.id,
+            p.nome,
+            cat.nome AS categoria,
+            p.preco,
+            p.estoque_atual AS estoque_real_final,
+            COALESCE(ent.total_entradas, 0) AS entradas_periodo,
+            COALESCE(vendas.total_vendido, 0) AS saidas_periodo,
+            (COALESCE(ent.total_entradas, 0) - COALESCE(vendas.total_vendido, 0)) AS estoque_teorico_final,
+            COALESCE(ent.total_entradas, 0) AS estoque_inicial,
+            GREATEST(
+                (COALESCE(ent.total_entradas, 0) - COALESCE(vendas.total_vendido, 0)) - p.estoque_atual,
+                0
+            ) AS perdas_quantidade,
+            ROUND(
+                GREATEST(
+                    (COALESCE(ent.total_entradas, 0) - COALESCE(vendas.total_vendido, 0)) - p.estoque_atual,
+                    0
+                ) * p.preco, 2
+            ) AS perdas_valor,
+            ROUND(COALESCE(vendas.total_vendido, 0) * p.preco, 2) AS faturamento_periodo
+        FROM produtos p
+        JOIN categorias cat ON p.categoria_id = cat.id
+        LEFT JOIN (
+            SELECT produto_id, SUM(quantidade) AS total_entradas
+            FROM movimentacoes_estoque
+            WHERE tipo = 'entrada'
+            AND data_movimentacao BETWEEN :data_inicio AND (:data_fim::date + INTERVAL '1 day')
+            GROUP BY produto_id
+        ) ent ON ent.produto_id = p.id
+        LEFT JOIN (
+            SELECT ic.produto_id, SUM(ic.quantidade) AS total_vendido
+            FROM itens_comanda ic
+            JOIN comandas c ON ic.comanda_id = c.id
+            WHERE c.status = 'fechada'
+            AND c.data_venda BETWEEN :data_inicio2 AND (:data_fim2::date + INTERVAL '1 day')
+            GROUP BY ic.produto_id
+        ) vendas ON vendas.produto_id = p.id
+        WHERE p.ativo = true
+        ORDER BY perdas_quantidade DESC
+    ");
     $stmt->bindParam(':data_inicio', $data_inicio);
     $stmt->bindParam(':data_fim', $data_fim);
+    $stmt->bindParam(':data_inicio2', $data_inicio);
+    $stmt->bindParam(':data_fim2', $data_fim);
     $stmt->execute();
-    
+
     $perdas_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt = null; // IMPORTANTE: Fechar o statement antes de fazer outras queries
+    $stmt = null; // Fechar o statement antes de fazer outras queries
     
     // PASSO 2: Filtrar apenas produtos com perdas
     $perdas = array_filter($perdas_raw, function($item) {

@@ -97,7 +97,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caixa - Sistema Restaurante</title>
+    <title>Caixa - <?php echo getNomeSistema(); ?></title>
     <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
     <style>
         * {
@@ -976,7 +976,7 @@ setTimeout(function() {
                     const texto = conteudo.replace(/\x1B\[[0-9;]*[A-Za-z]/g, '').replace(/\x0A/g, '\n');
                     const janela = window.open('', '_blank', 'width=400,height=600');
                     if (janela) {
-                        janela.document.write('<h3>Espetinho do Junior</h3><pre>' + texto + '</pre><button onclick="window.print()">Imprimir</button>');
+                        janela.document.write('<h3><?php echo getNomeEstabelecimento(); ?></h3><pre>' + texto + '</pre><button onclick="window.print()">Imprimir</button>');
                         janela.document.close();
                     }
                     return Promise.resolve({success: true, message: 'Comprovante aberto!'});

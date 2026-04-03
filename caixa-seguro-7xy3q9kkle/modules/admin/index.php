@@ -56,6 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: index.php'); exit;
         }
 
+        if ($action === 'save_estabelecimento') {
+            $campos = ['nome_estabelecimento', 'nome_sistema', 'telefone', 'email_contato', 'endereco', 'link_ifood', 'link_whatsapp', 'horario_delivery', 'instagram', 'facebook'];
+            foreach ($campos as $campo) {
+                $valor = trim($_POST[$campo] ?? '');
+                $stmt = $db->prepare("INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES (?, ?, ?) ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()");
+                $stmt->execute([$campo, $valor, $campo]);
+            }
+            $_SESSION['sucesso'] = 'Dados do estabelecimento atualizados.';
+            header('Location: index.php'); exit;
+        }
+
         if ($action === 'save_commission') {
     $rate_percent = floatval($_POST['commission_rate'] ?? 3);
     if ($rate_percent < 0 || $rate_percent > 100) {
@@ -129,7 +140,7 @@ $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Buscar configuração de comissão - NOVO CÓDIGO
 try {
-    $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = 'commission_rate'');
+    $stmt = $db->prepare("SELECT valor FROM configuracoes_sistema WHERE chave = 'commission_rate'");
     $stmt->execute();
     $config = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -152,7 +163,7 @@ require_once '../../includes/header.php';
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">⚙️ Administração</h1>
+        <h1 class="h3">Administracao</h1>
     </div>
 
     <?php if (isset($_SESSION['sucesso'])): ?>
@@ -171,10 +182,66 @@ require_once '../../includes/header.php';
         <?php unset($_SESSION['erro']); ?>
     <?php endif; ?>
 
+    <!-- Card: Dados do Estabelecimento -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-building"></i> Dados do Estabelecimento</h5>
+            <p class="text-muted small">Essas informacoes aparecem no cardapio publico e nos comprovantes.</p>
+            <form method="POST">
+                <input type="hidden" name="action" value="save_estabelecimento">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome do Estabelecimento</label>
+                        <input type="text" class="form-control" name="nome_estabelecimento" value="<?= htmlspecialchars(getConfig('nome_estabelecimento', '')) ?>" placeholder="Ex: Restaurante do Ze">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nome do Sistema</label>
+                        <input type="text" class="form-control" name="nome_sistema" value="<?= htmlspecialchars(getConfig('nome_sistema', 'GestaoInteli')) ?>" placeholder="GestaoInteli">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" class="form-control" name="telefone" value="<?= htmlspecialchars(getConfig('telefone', '')) ?>" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Email de Contato</label>
+                        <input type="email" class="form-control" name="email_contato" value="<?= htmlspecialchars(getConfig('email_contato', '')) ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Endereco</label>
+                        <input type="text" class="form-control" name="endereco" value="<?= htmlspecialchars(getConfig('endereco', '')) ?>">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Link iFood</label>
+                        <input type="url" class="form-control" name="link_ifood" value="<?= htmlspecialchars(getConfig('link_ifood', '')) ?>" placeholder="https://www.ifood.com.br/...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Link WhatsApp</label>
+                        <input type="url" class="form-control" name="link_whatsapp" value="<?= htmlspecialchars(getConfig('link_whatsapp', '')) ?>" placeholder="https://wa.me/5511...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Horario Delivery</label>
+                        <input type="text" class="form-control" name="horario_delivery" value="<?= htmlspecialchars(getConfig('horario_delivery', '')) ?>" placeholder="18h as 23h">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Instagram</label>
+                        <input type="url" class="form-control" name="instagram" value="<?= htmlspecialchars(getConfig('instagram', '')) ?>" placeholder="https://instagram.com/...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Facebook</label>
+                        <input type="url" class="form-control" name="facebook" value="<?= htmlspecialchars(getConfig('facebook', '')) ?>" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Salvar Dados</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Card: Configurações -->
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">⚙️ Configurações do Sistema</h5>
+            <h5 class="card-title"><i class="bi bi-sliders"></i> Configuracoes do Sistema</h5>
             <form method="POST" class="row g-3">
                 <input type="hidden" name="action" value="save_commission">
                 <div class="col-md-4">

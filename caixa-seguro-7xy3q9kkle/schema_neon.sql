@@ -158,3 +158,10 @@ ON CONFLICT DO NOTHING;
 -- Taxa de comissao padrao
 INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES ('commission_rate', '0.03', 'Taxa de comissao dos garcons')
 ON CONFLICT (chave) DO NOTHING;
+
+-- Configuracoes white-label (defaults)
+INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES ('nome_estabelecimento', 'Meu Estabelecimento', 'Nome exibido no cardapio e comprovantes') ON CONFLICT (chave) DO NOTHING;
+INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES ('nome_sistema', 'GestaoInteli', 'Nome do sistema exibido no header e login') ON CONFLICT (chave) DO NOTHING;
+
+-- Constraints de seguranca para perdas
+ALTER TABLE perdas_estoque ADD CONSTRAINT chk_perdas_positivas CHECK (quantidade_perdida >= 0 AND valor_perda >= 0);

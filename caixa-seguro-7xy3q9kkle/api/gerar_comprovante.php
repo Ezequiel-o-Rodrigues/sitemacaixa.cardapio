@@ -1,6 +1,7 @@
 <?php
 // api/imprimir_comprovante.php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 header('Content-Type: application/json');
 
@@ -83,7 +84,7 @@ function gerarComprovanteLimpo($comanda) {
     $linhas = [];
     
     // Cabeçalho SIMPLES
-    $linhas[] = "ESPETINHO DO JUNIOR";
+    $linhas[] = strtoupper(getNomeEstabelecimento());
     $linhas[] = "-------------------------------";
     $linhas[] = "Comanda: #" . $comanda['comanda_id'];
     $linhas[] = "Data: " . date('d/m/Y H:i', strtotime($comanda['data_venda']));

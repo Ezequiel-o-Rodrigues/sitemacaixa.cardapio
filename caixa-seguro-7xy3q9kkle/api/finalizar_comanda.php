@@ -5,6 +5,7 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 // Buffer para evitar qualquer saída acidental
 if (!ob_get_level()) ob_start();
@@ -140,7 +141,7 @@ function gerarConteudoComprovante($comanda) {
     $cut = "\x1B\x69"; // Partial cut
     
     // Cabeçalho
-    $linhas[] = $reset . $center . $bold_on . "ESPETINHO DO JUNIOR" . $bold_off . $left;
+    $linhas[] = $reset . $center . $bold_on . strtoupper(getNomeEstabelecimento()) . $bold_off . $left;
     $linhas[] = str_repeat("-", 48);
     $linhas[] = "Comanda: #" . $comanda['comanda_id'];
     $linhas[] = "Data: " . date('d/m/Y H:i', strtotime($comanda['data_venda']));

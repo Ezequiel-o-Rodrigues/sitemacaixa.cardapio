@@ -31,57 +31,73 @@ try {
                 WHERE p.ativo = true
               ) sub
               WHERE diferenca_estoque > 0";
-    
+
     $stmt = $db->prepare($query);
     $stmt->execute();
     $perdas_detectadas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     $novas_perdas = 0;
-    
-    foreach ($perdas_detectadas as $perda) {
-        $estoque_esperado = $perda['total_entradas'] - $perda['total_vendido'];
-        $estoque_real = $perda['estoque_atual'];
-        $valor_perda = $perda['diferenca_estoque'] * $perda['preco'];
-        
-        // Verificar se já existe perda idêntica não visualizada
-        $stmt_check = $db->prepare("
-            SELECT id FROM perdas_estoque 
-            WHERE produto_id = ? 
-            AND quantidade_perdida = ? 
-            AND estoque_esperado = ? 
-            AND estoque_real = ? 
-            AND visualizada = 0
-        ");
-        $stmt_check->execute([
-            $perda['produto_id'], 
-            $perda['diferenca_estoque'],
-            $estoque_esperado,
-            $estoque_real
-        ]);
-        
-        if (!$stmt_check->fetch()) {
-            // Não existe - criar nova perda
-            $stmt_insert = $db->prepare("
-                INSERT INTO perdas_estoque (produto_id, quantidade_perdida, valor_perda, estoque_esperado, estoque_real, motivo) 
-                VALUES (?, ?, ?, ?, ?, 'Diferença de inventário detectada automaticamente')
+
+    // Usar transação para proteger contra race conditions
+    $db->beginTransaction();
+
+    try {
+        foreach ($perdas_detectadas as $perda) {
+            // Validar que diferenca_estoque é positiva antes de calcular
+            if ($perda['diferenca_estoque'] <= 0) {
+                continue;
+            }
+
+            $estoque_esperado = $perda['total_entradas'] - $perda['total_vendido'];
+            $estoque_real = $perda['estoque_atual'];
+            $valor_perda = round($perda['diferenca_estoque'] * $perda['preco'], 2);
+
+            // Verificar se já existe perda idêntica não visualizada HOJE
+            $stmt_check = $db->prepare("
+                SELECT id FROM perdas_estoque
+                WHERE produto_id = ?
+                AND quantidade_perdida = ?
+                AND estoque_esperado = ?
+                AND estoque_real = ?
+                AND visualizada = 0
+                AND DATE(data_identificacao) = CURRENT_DATE
             ");
-            $stmt_insert->execute([
-                $perda['produto_id'], 
-                $perda['diferenca_estoque'], 
-                $valor_perda,
+            $stmt_check->execute([
+                $perda['produto_id'],
+                $perda['diferenca_estoque'],
                 $estoque_esperado,
                 $estoque_real
             ]);
-            $novas_perdas++;
+
+            if (!$stmt_check->fetch()) {
+                // Não existe - criar nova perda
+                $stmt_insert = $db->prepare("
+                    INSERT INTO perdas_estoque (produto_id, quantidade_perdida, valor_perda, estoque_esperado, estoque_real, motivo)
+                    VALUES (?, ?, ?, ?, ?, 'Diferença de inventário detectada automaticamente')
+                ");
+                $stmt_insert->execute([
+                    $perda['produto_id'],
+                    $perda['diferenca_estoque'],
+                    $valor_perda,
+                    $estoque_esperado,
+                    $estoque_real
+                ]);
+                $novas_perdas++;
+            }
         }
+
+        $db->commit();
+    } catch (Exception $e) {
+        $db->rollBack();
+        throw $e;
     }
-    
+
     echo json_encode([
         'success' => true,
         'novas_perdas' => $novas_perdas,
         'message' => "Detecção concluída. $novas_perdas novas perdas registradas."
     ]);
-    
+
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,

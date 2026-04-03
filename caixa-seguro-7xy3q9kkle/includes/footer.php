@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <footer class="footer mt-5">
         <div class="container">
-            <p>&copy; <?= date('Y') ?> Sistema Restaurante - Espetinho do Júnior</p>
+            <p>&copy; <?= date('Y') ?> <?= getNomeSistema() ?></p>
             <?php if ($usuarioLogado): ?>
             <small class="text-muted">
                 Usuário: <?= htmlspecialchars($_SESSION['usuario_nome'] ?? '') ?> | 

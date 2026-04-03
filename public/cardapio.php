@@ -66,6 +66,9 @@ function resolveImagePath($imagem) {
 
     return $default;
 }
+
+require_once __DIR__ . '/../caixa-seguro-7xy3q9kkle/includes/functions.php';
+$nomeEstabelecimento = getNomeEstabelecimento();
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +76,7 @@ function resolveImagePath($imagem) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Espetinho do Júnior</title>
+    <title><?= htmlspecialchars($nomeEstabelecimento) ?> - Cardapio</title>
     <link rel="stylesheet" href="estilo.css">
     <link href="https://fonts.googleapis.com/css2?family=Palanquin+Dark:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -469,8 +472,8 @@ main.container {
 <body>
     <header>
         <div class="container">
-            <h1>ESPETINHO DO JÚNIOR</h1>
-            <p class="header-subtitle">EXCELÊNCIA EM SERVIR DESDE 2005</p>
+            <h1><?= htmlspecialchars(strtoupper($nomeEstabelecimento)) ?></h1>
+            <p class="header-subtitle">Cardapio Digital</p>
         </div>
     </header>
     
@@ -536,33 +539,40 @@ main.container {
                     <h2 style="color: var(--primary-color); font-family: 'Playfair Display', serif; 
                             margin-bottom: 30px;">Escolha sua plataforma</h2>
                     
+                    <?php
+                    $link_ifood = getConfig('link_ifood', '');
+                    $link_whatsapp = getConfig('link_whatsapp', '');
+                    $horario_delivery = getConfig('horario_delivery', '');
+                    ?>
                     <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <a href="https://www.ifood.com.br/delivery/morrinhos-go/espetinho-do-junior-jantinhas-vila-santos-dumont-i/5ef0eab0-bc60-4bd1-8ec5-69cdc4314be4" 
-                        target="_blank" 
-                        style="background-color: #ea1d2c; color: white; padding: 15px; 
+                        <?php if ($link_ifood): ?>
+                        <a href="<?= htmlspecialchars($link_ifood) ?>"
+                        target="_blank"
+                        style="background-color: #ea1d2c; color: white; padding: 15px;
                                 border-radius: 8px; text-decoration: none; font-weight: bold;
                                 display: flex; align-items: center; justify-content: center;
                                 transition: transform 0.3s;">
-                            <img src="https://t2.tudocdn.net/652297?w=646&h=284" 
-                            style="width: 30px; margin-right: 10px;" alt="iFood">
                             Pedir pelo iFood
                         </a>
-                        
-                        <a href="https://wa.me/556492397675" 
-                        target="_blank" 
-                        style="background-color: #25D366; color: white; padding: 15px; 
+                        <?php endif; ?>
+
+                        <?php if ($link_whatsapp): ?>
+                        <a href="<?= htmlspecialchars($link_whatsapp) ?>"
+                        target="_blank"
+                        style="background-color: #25D366; color: white; padding: 15px;
                                 border-radius: 8px; text-decoration: none; font-weight: bold;
                                 display: flex; align-items: center; justify-content: center;
                                 transition: transform 0.3s;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" 
-                            style="width: 30px; margin-right: 10px;" alt="WhatsApp">
                             Pedir pelo WhatsApp
                         </a>
+                        <?php endif; ?>
                     </div>
-                    
+
+                    <?php if ($horario_delivery): ?>
                     <p style="margin-top: 30px; color: #666; font-size: 0.9rem;">
-                        Horário de Delivery: 18h às 23h
+                        <?= htmlspecialchars($horario_delivery) ?>
                     </p>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
@@ -572,18 +582,25 @@ main.container {
 
     <footer>
         <div class="footer-content">
-            <div class="footer-logo">CHURRASCARIA DO JÚNIOR</div>
-            <p class="footer-info"><i class="fas fa-map-marker-alt"></i> Av. 101, 474-524, Morrinhos GO, 75654-252, Brazil.</p>
-            <p class="footer-info"><i class="fas fa-phone"></i> (64) 99239-7675</p>
-            <p class="footer-info"><i class="fas fa-envelope"></i> espetinhojunior2@gmail.com</p>
-            
+            <?php
+            $endereco = getConfig('endereco', '');
+            $telefone = getConfig('telefone', '');
+            $email_contato = getConfig('email_contato', '');
+            $instagram = getConfig('instagram', '');
+            $facebook = getConfig('facebook', '');
+            ?>
+            <div class="footer-logo"><?= htmlspecialchars(strtoupper($nomeEstabelecimento)) ?></div>
+            <?php if ($endereco): ?><p class="footer-info"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($endereco) ?></p><?php endif; ?>
+            <?php if ($telefone): ?><p class="footer-info"><i class="fas fa-phone"></i> <?= htmlspecialchars($telefone) ?></p><?php endif; ?>
+            <?php if ($email_contato): ?><p class="footer-info"><i class="fas fa-envelope"></i> <?= htmlspecialchars($email_contato) ?></p><?php endif; ?>
+
             <div class="social-icons">
-                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <?php if ($facebook): ?><a href="<?= htmlspecialchars($facebook) ?>" class="social-icon"><i class="fab fa-facebook-f"></i></a><?php endif; ?>
+                <?php if ($instagram): ?><a href="<?= htmlspecialchars($instagram) ?>" class="social-icon"><i class="fab fa-instagram"></i></a><?php endif; ?>
             </div>
-            
+
             <p class="footer-info" style="margin-top: 30px; font-size: 0.9rem;">
-                &copy; <?= date('Y') ?> Churrascaria do Júnior. Todos os direitos reservados.
+                &copy; <?= date('Y') ?> <?= htmlspecialchars($nomeEstabelecimento) ?>. Todos os direitos reservados.
             </p>
             <p class="footer-info" style="margin-top: 30px; font-size: 0.9rem;">
                 &copy; <?= date('Y') ?> Site desenvolvido por: 

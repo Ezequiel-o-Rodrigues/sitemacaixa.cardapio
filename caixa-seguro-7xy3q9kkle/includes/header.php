@@ -14,7 +14,7 @@ $usuarioPerfil = $_SESSION['usuario_perfil'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Restaurante</title>
+    <title><?= getNomeSistema() ?></title>
     
     <!-- ✅ Bootstrap via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,62 +25,6 @@ $usuarioPerfil = $_SESSION['usuario_perfil'] ?? '';
         <link rel="stylesheet" href="<?= PathConfig::url('css/style.css') ?>">
     <?php elseif (file_exists(__DIR__ . '/../style.css')): ?>
         <link rel="stylesheet" href="<?= PathConfig::url('style.css') ?>">
-    <?php else: ?>
-        <style>
-            /* Estilos básicos de fallback */
-            body { 
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0; 
-                padding: 0;
-                background-color: #f8f9fa;
-            }
-            .header { 
-                background: #343a40; 
-                padding: 1rem; 
-                color: white; 
-            }
-            .header h1 { margin: 0; }
-            .main-nav a { 
-                color: white; 
-                margin-right: 20px; 
-                text-decoration: none;
-                font-weight: 500;
-            }
-            .main-nav a:hover { text-decoration: underline; }
-            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-            .footer { background: #343a40; color: white; padding: 1rem; text-align: center; margin-top: 2rem; }
-            
-            /* Estilos para a bolinha do usuário */
-            .user-avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background: linear-gradient(45deg, #667eea, #764ba2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-                font-size: 14px;
-                cursor: pointer;
-                border: 2px solid rgba(255,255,255,0.3);
-                transition: all 0.3s ease;
-            }
-            
-            .user-avatar:hover {
-                transform: scale(1.05);
-                border-color: rgba(255,255,255,0.6);
-            }
-            
-            .dropdown-menu {
-                min-width: 250px;
-            }
-            
-            .dropdown-header {
-                padding: 0.75rem 1rem;
-                border-bottom: 1px solid #dee2e6;
-            }
-        </style>
     <?php endif; ?>
     
     <script>
@@ -98,13 +42,15 @@ $usuarioPerfil = $_SESSION['usuario_perfil'] ?? '';
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
-                    <h1 class="me-4">🍽️ Sistema Restaurante</h1>
+                    <h1 class="me-4"><?= getNomeSistema() ?></h1>
                     <nav class="main-nav">
-                        <a href="<?= PathConfig::url() ?>">🏠 Início</a>
-                        <a href="<?= PathConfig::modules('caixa/') ?>">💰 Caixa</a>
-                        <a href="<?= PathConfig::modules('estoque/') ?>">📦 Estoque</a>
-                        <a href="<?= PathConfig::modules('relatorios/') ?>">📊 Relatórios</a>
-                        <a href="<?= PathConfig::modules('admin/') ?>">⚙️ Admin</a>
+                        <a href="<?= PathConfig::url() ?>"><i class="bi bi-house-door"></i> Inicio</a>
+                        <a href="<?= PathConfig::modules('caixa/') ?>"><i class="bi bi-cash-register"></i> Caixa</a>
+                        <a href="<?= PathConfig::modules('estoque/') ?>"><i class="bi bi-box-seam"></i> Estoque</a>
+                        <a href="<?= PathConfig::modules('relatorios/') ?>"><i class="bi bi-graph-up"></i> Relatorios</a>
+                        <?php if ($usuarioPerfil === 'admin'): ?>
+                        <a href="<?= PathConfig::modules('admin/') ?>"><i class="bi bi-gear"></i> Admin</a>
+                        <?php endif; ?>
                     </nav>
                 </div>
                 
