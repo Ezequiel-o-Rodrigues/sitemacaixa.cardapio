@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db = $database->getConnection();
         
         // Buscar ID do garçom pelo código
-        $queryGarcom = "SELECT id, nome, codigo FROM garcons WHERE codigo = :codigo AND ativo = 1";
+        $queryGarcom = "SELECT id, nome, codigo FROM garcons WHERE codigo = :codigo AND ativo = true";
         $stmtGarcom = $db->prepare($queryGarcom);
         $stmtGarcom->bindParam(':codigo', $garcomCodigo);
         $stmtGarcom->execute();

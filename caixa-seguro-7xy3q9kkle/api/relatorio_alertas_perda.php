@@ -51,7 +51,7 @@ try {
                    p.estoque_atual) as diferenca_estoque
                 FROM produtos p
                 JOIN categorias cat ON p.categoria_id = cat.id
-                WHERE p.ativo = 1
+                WHERE p.ativo = true
               ) sub
               WHERE diferenca_estoque > 0
               ORDER BY diferenca_estoque DESC";

@@ -28,7 +28,7 @@ try {
     $dashboard_semana = $stmt_semana->fetch(PDO::FETCH_ASSOC);
     
     // Alertas de estoque
-    $query_estoque = "SELECT COUNT(*) as alertas_estoque FROM produtos WHERE estoque_atual <= estoque_minimo AND ativo = 1";
+    $query_estoque = "SELECT COUNT(*) as alertas_estoque FROM produtos WHERE estoque_atual <= estoque_minimo AND ativo = true";
     $stmt_estoque = $db->prepare($query_estoque);
     $stmt_estoque->execute();
     $alertas_estoque = $stmt_estoque->fetch(PDO::FETCH_ASSOC);
@@ -37,10 +37,10 @@ try {
     $query_perdas = "SELECT COUNT(*) as total_perdas FROM (
         SELECT p.id
         FROM produtos p
-        WHERE p.ativo = 1
+        WHERE p.ativo = true
         AND (
-            (SELECT COALESCE(SUM(me.quantidade), 0) FROM movimentacoes_estoque me WHERE me.produto_id = p.id AND me.tipo = 'entrada' AND me.data_movimentacao >= DATE_SUB(NOW(), INTERVAL 30 DAY)) -
-            (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada' AND c.data_venda >= DATE_SUB(NOW(), INTERVAL 30 DAY)) -
+            (SELECT COALESCE(SUM(me.quantidade), 0) FROM movimentacoes_estoque me WHERE me.produto_id = p.id AND me.tipo = 'entrada' AND me.data_movimentacao >= NOW() - INTERVAL '30 days') -
+            (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada' AND c.data_venda >= NOW() - INTERVAL '30 days') -
             p.estoque_atual
         ) > 0
     ) as perdas";

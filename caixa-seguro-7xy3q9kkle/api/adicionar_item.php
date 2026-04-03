@@ -56,7 +56,7 @@ try {
     }
 
     // 1. Verificar se produto existe e tem estoque disponível (APENAS VERIFICAÇÃO)
-    $query_produto = "SELECT estoque_atual, nome, preco FROM produtos WHERE id = ? AND ativo = 1";
+    $query_produto = "SELECT estoque_atual, nome, preco FROM produtos WHERE id = ? AND ativo = true";
     $stmt_produto = $db->prepare($query_produto);
     $stmt_produto->execute([$produto_id]);
     $produto = $stmt_produto->fetch(PDO::FETCH_ASSOC);

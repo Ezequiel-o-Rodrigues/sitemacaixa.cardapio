@@ -27,9 +27,10 @@ try {
         throw new Exception('Dados incompletos');
     }
 
+    $ativo = $input['ativo'] ? true : false;
     $query = "UPDATE produtos SET ativo = :ativo, updated_at = NOW() WHERE id = :id";
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':ativo', $input['ativo']);
+    $stmt->bindParam(':ativo', $ativo, PDO::PARAM_BOOL);
     $stmt->bindParam(':id', $input['produto_id']);
 
     $success = $stmt->execute();

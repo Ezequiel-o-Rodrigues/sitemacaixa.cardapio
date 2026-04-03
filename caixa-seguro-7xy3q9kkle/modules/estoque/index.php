@@ -35,7 +35,7 @@ require_once '../../includes/header.php';
 $query_produtos = "SELECT p.*, c.nome as categoria_nome 
                    FROM produtos p 
                    JOIN categorias c ON p.categoria_id = c.id 
-                   WHERE p.ativo = 1 
+                   WHERE p.ativo = true 
                    ORDER BY c.nome, p.nome";
 $stmt_produtos = $db->prepare($query_produtos);
 $stmt_produtos->execute();

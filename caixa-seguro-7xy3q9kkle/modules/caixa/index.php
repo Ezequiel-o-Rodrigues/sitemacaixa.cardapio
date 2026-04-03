@@ -33,7 +33,7 @@ try {
     $query = "SELECT p.*, c.nome as categoria_nome, c.id as categoria_id 
               FROM produtos p 
               JOIN categorias c ON p.categoria_id = c.id 
-              WHERE p.ativo = 1 
+              WHERE p.ativo = true 
               ORDER BY c.nome, p.nome";
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -81,7 +81,7 @@ try {
 // BUSCAR GARÇONS ATIVOS (fora do try principal para não quebrar se a tabela não existir)
 try {
     if (isset($db)) {
-        $query_garcons = "SELECT id, nome, codigo FROM garcons WHERE ativo = 1 ORDER BY codigo";
+        $query_garcons = "SELECT id, nome, codigo FROM garcons WHERE ativo = true ORDER BY codigo";
         $stmt_garcons = $db->prepare($query_garcons);
         $stmt_garcons->execute();
         $garcons = $stmt_garcons->fetchAll(PDO::FETCH_ASSOC);

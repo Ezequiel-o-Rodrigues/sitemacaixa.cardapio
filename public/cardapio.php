@@ -9,7 +9,7 @@ try {
     $sql_categorias = "SELECT c.* FROM categorias c 
                        WHERE EXISTS (
                            SELECT 1 FROM produtos p 
-                           WHERE p.categoria_id = c.id AND p.ativo = 1 AND p.estoque_atual > 0
+                           WHERE p.categoria_id = c.id AND p.ativo = true AND p.estoque_atual > 0
                        ) ORDER BY c.nome";
     $stmt_cat = $conn->query($sql_categorias);
     $categorias = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
@@ -17,7 +17,7 @@ try {
     // Fetch products
     $sql_produtos = "SELECT p.*, c.nome as categoria_nome FROM produtos p 
                      JOIN categorias c ON p.categoria_id = c.id 
-                     WHERE p.ativo = 1 AND p.estoque_atual > 0 
+                     WHERE p.ativo = true AND p.estoque_atual > 0 
                      ORDER BY c.nome, p.nome";
     $stmt_prod = $conn->query($sql_produtos);
     $produtos = $stmt_prod->fetchAll(PDO::FETCH_ASSOC);

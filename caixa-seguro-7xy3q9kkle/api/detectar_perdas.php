@@ -9,26 +9,28 @@ $db = $database->getConnection();
 
 try {
     // Query para detectar perdas reais
-    $query = "SELECT 
-                p.id as produto_id,
-                p.nome,
-                cat.nome as categoria,
-                p.estoque_atual,
-                p.preco,
-                (SELECT COALESCE(SUM(quantidade), 0) 
-                 FROM movimentacoes_estoque me 
-                 WHERE me.produto_id = p.id AND me.tipo = 'entrada') as total_entradas,
-                (SELECT COALESCE(SUM(ic.quantidade), 0) 
-                 FROM itens_comanda ic 
-                 JOIN comandas c ON ic.comanda_id = c.id 
-                 WHERE ic.produto_id = p.id AND c.status = 'fechada') as total_vendido,
-                ((SELECT COALESCE(SUM(quantidade), 0) FROM movimentacoes_estoque WHERE produto_id = p.id AND tipo = 'entrada') - 
-                 (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada') - 
-                 p.estoque_atual) as diferenca_estoque
-              FROM produtos p
-              JOIN categorias cat ON p.categoria_id = cat.id
-              WHERE p.ativo = 1
-              HAVING diferenca_estoque > 0";
+    $query = "SELECT * FROM (
+                SELECT
+                  p.id as produto_id,
+                  p.nome,
+                  cat.nome as categoria,
+                  p.estoque_atual,
+                  p.preco,
+                  (SELECT COALESCE(SUM(quantidade), 0)
+                   FROM movimentacoes_estoque me
+                   WHERE me.produto_id = p.id AND me.tipo = 'entrada') as total_entradas,
+                  (SELECT COALESCE(SUM(ic.quantidade), 0)
+                   FROM itens_comanda ic
+                   JOIN comandas c ON ic.comanda_id = c.id
+                   WHERE ic.produto_id = p.id AND c.status = 'fechada') as total_vendido,
+                  ((SELECT COALESCE(SUM(quantidade), 0) FROM movimentacoes_estoque WHERE produto_id = p.id AND tipo = 'entrada') -
+                   (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada') -
+                   p.estoque_atual) as diferenca_estoque
+                FROM produtos p
+                JOIN categorias cat ON p.categoria_id = cat.id
+                WHERE p.ativo = true
+              ) sub
+              WHERE diferenca_estoque > 0";
     
     $stmt = $db->prepare($query);
     $stmt->execute();

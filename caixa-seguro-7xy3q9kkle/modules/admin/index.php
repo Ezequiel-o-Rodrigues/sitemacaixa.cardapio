@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nome = $_POST['nome'] ?? '';
             $email = $_POST['email'] ?? '';
             $perfil = $_POST['perfil'] ?? 'usuario';
-            $ativo = isset($_POST['ativo']) ? 1 : 0;
+            $ativo = isset($_POST['ativo']) ? true : false;
             $senha = $_POST['senha'] ?? '';
 
             if ($id) {
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // insert
                 if (empty($senha)) throw new Exception('Senha é obrigatória para novo usuário.');
                 $hash = password_hash($senha, PASSWORD_DEFAULT);
-                $stmt = $db->prepare("INSERT INTO usuarios (nome, email, senha, perfil, ativo, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+                $stmt = $db->prepare("INSERT INTO usuarios (nome, email, senha, perfil, ativo, created_at) VALUES (?, ?, ?, ?, ?::boolean, NOW())");
                 $stmt->execute([$nome, $email, $hash, $perfil, $ativo]);
                 $_SESSION['sucesso'] = 'Usuário criado com sucesso.';
             }
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'toggle_user') {
             $id = (int)($_POST['id'] ?? 0);
-            $stmt = $db->prepare('UPDATE usuarios SET ativo = CASE WHEN ativo = 1 THEN 0 ELSE 1 END WHERE id = ?');
+            $stmt = $db->prepare('UPDATE usuarios SET ativo = NOT ativo WHERE id = ?');
             $stmt->execute([$id]);
             $_SESSION['sucesso'] = 'Status do usuário alterado.';
             header('Location: index.php'); exit;
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = !empty($_POST['id']) ? (int)$_POST['id'] : null;
             $nome = trim($_POST['nome'] ?? '');
             $codigo = trim($_POST['codigo'] ?? '');
-            $ativo = isset($_POST['ativo']) ? 1 : 0;
+            $ativo = isset($_POST['ativo']) ? true : false;
 
             if (empty($nome)) throw new Exception('Nome é obrigatório.');
 
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'toggle_garcom') {
             $id = (int)($_POST['id'] ?? 0);
-            $stmt = $db->prepare('UPDATE garcons SET ativo = CASE WHEN ativo = 1 THEN 0 ELSE 1 END WHERE id = ?');
+            $stmt = $db->prepare('UPDATE garcons SET ativo = NOT ativo WHERE id = ?');
             $stmt->execute([$id]);
             $_SESSION['sucesso'] = 'Status do garçom alterado.';
             header('Location: index.php'); exit;

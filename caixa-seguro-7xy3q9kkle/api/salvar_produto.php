@@ -112,7 +112,7 @@ try {
         $query = "INSERT INTO produtos 
                   (nome, categoria_id, preco, estoque_minimo, estoque_atual, imagem, ativo, created_at) 
                   VALUES 
-                  (:nome, :categoria_id, :preco, :estoque_minimo, :estoque_atual, :imagem, 1, NOW())";
+                  (:nome, :categoria_id, :preco, :estoque_minimo, :estoque_atual, :imagem, true, NOW())";
 
         $stmt = $db->prepare($query);
         $stmt->bindParam(':nome', $input['nome']);

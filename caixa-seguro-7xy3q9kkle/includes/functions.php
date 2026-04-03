@@ -22,7 +22,7 @@ function getProdutosPorCategoria($categoria_id) {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT * FROM produtos WHERE categoria_id = :categoria_id AND ativo = 1 ORDER BY nome";
+    $query = "SELECT * FROM produtos WHERE categoria_id = :categoria_id AND ativo = true ORDER BY nome";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':categoria_id', $categoria_id);
     $stmt->execute();
@@ -34,7 +34,7 @@ function getProdutosPorCategoria($categoria_id) {
 function getProdutosAtivos($db, $categoria_id = null) {
     $query = "SELECT p.*, c.nome as categoria_nome FROM produtos p 
               JOIN categorias c ON p.categoria_id = c.id 
-              WHERE p.ativo = 1";
+              WHERE p.ativo = true";
     
     if ($categoria_id) {
         $query .= " AND p.categoria_id = :categoria_id";

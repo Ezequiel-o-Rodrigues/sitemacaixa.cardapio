@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = $database->getConnection();
             
             // Aceitar email como login
-            $stmt = $db->prepare("SELECT id, nome, email, senha, perfil, ativo FROM usuarios WHERE email = ? AND ativo = 1");
+            $stmt = $db->prepare("SELECT id, nome, email, senha, perfil, ativo FROM usuarios WHERE email = ? AND ativo = true");
             $stmt->execute([$login]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
             

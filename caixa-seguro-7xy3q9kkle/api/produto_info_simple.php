@@ -13,7 +13,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    $stmt = $db->prepare("SELECT id, nome, preco, estoque_atual, categoria_id FROM produtos WHERE id = ? AND ativo = 1");
+    $stmt = $db->prepare("SELECT id, nome, preco, estoque_atual, categoria_id FROM produtos WHERE id = ? AND ativo = true");
     $stmt->execute([$id]);
     $produto = $stmt->fetch(PDO::FETCH_ASSOC);
     

@@ -17,7 +17,7 @@ try {
     // Buscar taxa de comissão do banco ou usar padrão - NOVO CÓDIGO
 $rate = 0.03; // padrão
 try {
-    $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = "commission_rate"');
+    $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = 'commission_rate'');
     if ($stmt->execute()) {
         $config = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($config && isset($config['valor'])) {
@@ -36,7 +36,7 @@ try {
     $totalComandasComGarcom = (int)($row['total'] ?? 0);
 
     // Garçons ativos
-    $stmt = $db->prepare("SELECT id, nome, codigo, ativo FROM garcons WHERE ativo = 1 ORDER BY nome");
+    $stmt = $db->prepare("SELECT id, nome, codigo, ativo FROM garcons WHERE ativo = true ORDER BY nome");
     $stmt->execute();
     $garcons = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $activeCount = count($garcons);

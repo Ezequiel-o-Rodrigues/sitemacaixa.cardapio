@@ -14,7 +14,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT * FROM produtos WHERE categoria_id = ? AND ativo = 1 ORDER BY nome";
+    $query = "SELECT * FROM produtos WHERE categoria_id = ? AND ativo = true ORDER BY nome";
     $stmt = $db->prepare($query);
     $stmt->execute([$_GET['categoria_id']]);
     
