@@ -36,13 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 c.data_venda,
                 g.nome as garcom_nome,
                 g.codigo as garcom_codigo,
-                GROUP_CONCAT(CONCAT(p.nome, '|', ic.quantidade, '|', ic.preco_unitario, '|', ic.subtotal) SEPARATOR ';') as itens
+                STRING_AGG(CONCAT(p.nome, '|', ic.quantidade, '|', ic.preco_unitario, '|', ic.subtotal), ';') as itens
             FROM comandas c
             LEFT JOIN garcons g ON c.garcom_id = g.id
             LEFT JOIN itens_comanda ic ON c.id = ic.comanda_id
             LEFT JOIN produtos p ON ic.produto_id = p.id
             WHERE c.id = :comanda_id
-            GROUP BY c.id
+            GROUP BY c.id, c.valor_total, c.data_venda, g.nome, g.codigo
         ";
         
         $stmt_comanda = $db->prepare($query_comanda);

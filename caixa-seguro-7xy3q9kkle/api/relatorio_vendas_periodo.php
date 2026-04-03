@@ -15,7 +15,7 @@ try {
     // Buscar taxa de comissão do banco ou usar padrão
     $rate = 0.03; // padrão 3%
     try {
-        $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = "commission_rate"');
+        $stmt = $db->prepare("SELECT valor FROM configuracoes_sistema WHERE chave = 'commission_rate'");
         if ($stmt->execute()) {
             $config = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($config && isset($config['valor'])) {
@@ -41,29 +41,29 @@ try {
             break;
             
         case 'semanal':
-            $query = "SELECT 
-                         CONCAT('Semana ', WEEK(data_venda), ' - ', YEAR(data_venda)) as periodo,
+            $query = "SELECT
+                         'Semana ' || EXTRACT(WEEK FROM data_venda)::INT || ' - ' || EXTRACT(YEAR FROM data_venda)::INT as periodo,
                          COUNT(id) as total_comandas,
                          COALESCE(SUM(valor_total), 0) as valor_total,
                          COALESCE(AVG(valor_total), 0) as ticket_medio
-                      FROM comandas 
+                      FROM comandas
                       WHERE status = 'fechada'
                         AND DATE(data_venda) BETWEEN :data_inicio AND :data_fim
-                      GROUP BY YEAR(data_venda), WEEK(data_venda)
-                      ORDER BY YEAR(data_venda) DESC, WEEK(data_venda) DESC";
+                      GROUP BY EXTRACT(YEAR FROM data_venda), EXTRACT(WEEK FROM data_venda)
+                      ORDER BY EXTRACT(YEAR FROM data_venda) DESC, EXTRACT(WEEK FROM data_venda) DESC";
             break;
-            
+
         case 'mensal':
-            $query = "SELECT 
-                         CONCAT(YEAR(data_venda), '-', LPAD(MONTH(data_venda), 2, '0')) as periodo,
+            $query = "SELECT
+                         TO_CHAR(data_venda, 'YYYY-MM') as periodo,
                          COUNT(id) as total_comandas,
                          COALESCE(SUM(valor_total), 0) as valor_total,
                          COALESCE(AVG(valor_total), 0) as ticket_medio
-                      FROM comandas 
+                      FROM comandas
                       WHERE status = 'fechada'
                         AND DATE(data_venda) BETWEEN :data_inicio AND :data_fim
-                      GROUP BY YEAR(data_venda), MONTH(data_venda)
-                      ORDER BY YEAR(data_venda) DESC, MONTH(data_venda) DESC";
+                      GROUP BY EXTRACT(YEAR FROM data_venda), EXTRACT(MONTH FROM data_venda), TO_CHAR(data_venda, 'YYYY-MM')
+                      ORDER BY EXTRACT(YEAR FROM data_venda) DESC, EXTRACT(MONTH FROM data_venda) DESC";
             break;
             
         default:

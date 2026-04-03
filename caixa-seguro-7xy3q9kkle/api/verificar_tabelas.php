@@ -8,7 +8,7 @@ try {
     $db = $database->getConnection();
     
     // Verificar estrutura da tabela comandas
-    $stmt = $db->query("DESCRIBE comandas");
+    $stmt = $db->query("SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = 'comandas' AND table_schema = 'public' ORDER BY ordinal_position");
     $estrutura_comandas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([

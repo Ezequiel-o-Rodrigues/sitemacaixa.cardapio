@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'toggle_user') {
             $id = (int)($_POST['id'] ?? 0);
-            $stmt = $db->prepare('UPDATE usuarios SET ativo = NOT ativo WHERE id = ?');
+            $stmt = $db->prepare('UPDATE usuarios SET ativo = CASE WHEN ativo = 1 THEN 0 ELSE 1 END WHERE id = ?');
             $stmt->execute([$id]);
             $_SESSION['sucesso'] = 'Status do usuário alterado.';
             header('Location: index.php'); exit;
@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rate = $rate_percent / 100; // Converter de porcentagem para decimal
     
     // Usar a NOVA tabela configuracoes_sistema
-    $stmt = $db->prepare("INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES ('commission_rate', ?, 'Taxa de comissão dos garçons') ON DUPLICATE KEY UPDATE valor = ?, updated_at = NOW()");
-    $stmt->execute([$rate, $rate]);
+    $stmt = $db->prepare("INSERT INTO configuracoes_sistema (chave, valor, descricao) VALUES ('commission_rate', ?, 'Taxa de comissão dos garçons') ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()");
+    $stmt->execute([$rate]);
     $_SESSION['sucesso'] = 'Taxa de comissão atualizada para ' . number_format($rate_percent, 1) . '%.';
     header('Location: index.php'); exit;
 }
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'toggle_garcom') {
             $id = (int)($_POST['id'] ?? 0);
-            $stmt = $db->prepare('UPDATE garcons SET ativo = NOT ativo WHERE id = ?');
+            $stmt = $db->prepare('UPDATE garcons SET ativo = CASE WHEN ativo = 1 THEN 0 ELSE 1 END WHERE id = ?');
             $stmt->execute([$id]);
             $_SESSION['sucesso'] = 'Status do garçom alterado.';
             header('Location: index.php'); exit;
@@ -122,9 +122,14 @@ $stmt = $db->prepare('SELECT id, nome, codigo, ativo, created_at FROM garcons OR
 $stmt->execute();
 $garcons = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Buscar produtos com categoria
+$stmt = $db->prepare('SELECT p.*, c.nome as categoria_nome FROM produtos p LEFT JOIN categorias c ON p.categoria_id = c.id ORDER BY c.nome, p.nome');
+$stmt->execute();
+$produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Buscar configuração de comissão - NOVO CÓDIGO
 try {
-    $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = "commission_rate"');
+    $stmt = $db->prepare('SELECT valor FROM configuracoes_sistema WHERE chave = 'commission_rate'');
     $stmt->execute();
     $config = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -264,7 +269,7 @@ require_once '../../includes/header.php';
     <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="card-title mb-0">🏷️ Gerenciar Categorias</h5>
+                <h5 class="card-title mb-0">Gerenciar Categorias</h5>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#categoriaModal" onclick="novaCategoria()">Nova Categoria</button>
             </div>
             <div class="table-responsive">
@@ -276,11 +281,11 @@ require_once '../../includes/header.php';
                         </tr>
                     </thead>
                     <tbody id="lista-categorias">
-                        <?php 
+                        <?php
                         $stmt = $db->prepare('SELECT id, nome FROM categorias ORDER BY nome');
                         $stmt->execute();
                         $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        foreach($categorias as $cat): 
+                        foreach($categorias as $cat):
                         ?>
                         <tr>
                             <td><?= htmlspecialchars($cat['nome']) ?></td>
@@ -293,6 +298,143 @@ require_once '../../includes/header.php';
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Card: Gerenciar Produtos (Cardápio + Caixa) -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">Gerenciar Produtos</h5>
+                <div class="d-flex gap-2">
+                    <input type="text" id="filtro-produto" class="form-control form-control-sm" placeholder="Buscar produto..." style="width: 200px;" oninput="filtrarProdutos()">
+                    <select id="filtro-categoria" class="form-select form-select-sm" style="width: 160px;" onchange="filtrarProdutos()">
+                        <option value="">Todas categorias</option>
+                        <?php foreach($categorias as $cat): ?>
+                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button class="btn btn-primary btn-sm text-nowrap" onclick="novoProduto()">Novo Produto</button>
+                </div>
+            </div>
+            <p class="text-muted small mb-2">Alterações aqui refletem automaticamente no cardápio público e no caixa.</p>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Imagem</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Estoque</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-produtos">
+                        <?php foreach($produtos as $prod): ?>
+                        <tr class="produto-row <?= $prod['ativo'] ? '' : 'table-secondary' ?>"
+                            data-nome="<?= htmlspecialchars(strtolower($prod['nome'])) ?>"
+                            data-categoria="<?= $prod['categoria_id'] ?>">
+                            <td>
+                                <?php if ($prod['imagem']): ?>
+                                <img src="<?= PathConfig::url('public/images/products/' . $prod['imagem']) ?>"
+                                     alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+                                <?php else: ?>
+                                <span class="text-muted" style="font-size:0.8rem;">Sem img</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($prod['nome']) ?></td>
+                            <td><span class="badge bg-info text-dark"><?= htmlspecialchars($prod['categoria_nome'] ?? 'Sem categoria') ?></span></td>
+                            <td>R$ <?= number_format($prod['preco'], 2, ',', '.') ?></td>
+                            <td>
+                                <?php if ($prod['estoque_atual'] <= $prod['estoque_minimo'] && $prod['estoque_atual'] > 0): ?>
+                                <span class="text-warning fw-bold"><?= $prod['estoque_atual'] ?></span>
+                                <?php elseif ($prod['estoque_atual'] == 0): ?>
+                                <span class="text-danger fw-bold">0</span>
+                                <?php else: ?>
+                                <?= $prod['estoque_atual'] ?>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-<?= $prod['ativo'] ? 'success' : 'secondary' ?>">
+                                    <?= $prod['ativo'] ? 'Ativo' : 'Inativo' ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick='editarProduto(<?= json_encode($prod) ?>)'>Editar</button>
+                                    <button class="btn btn-outline-warning" onclick="toggleProduto(<?= $prod['id'] ?>, <?= $prod['ativo'] ?>)">
+                                        <?= $prod['ativo'] ? 'Desativar' : 'Ativar' ?>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deletarProduto(<?= $prod['id'] ?>, '<?= htmlspecialchars($prod['nome']) ?>')">Excluir</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2">Total: <?= count($produtos) ?> produtos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Produto -->
+<div class="modal fade" id="produtoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="produtoModalTitle">Novo Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="produtoForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="prod_id">
+
+                    <div class="mb-3">
+                        <label for="prod_nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="prod_nome" required>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="prod_categoria" class="form-label">Categoria *</label>
+                            <select class="form-select" id="prod_categoria" required>
+                                <option value="">Selecione...</option>
+                                <?php foreach($categorias as $cat): ?>
+                                <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="prod_preco" class="form-label">Preço (R$) *</label>
+                            <input type="number" class="form-control" id="prod_preco" step="0.01" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="prod_estoque_minimo" class="form-label">Estoque mínimo</label>
+                            <input type="number" class="form-control" id="prod_estoque_minimo" min="0" value="0">
+                        </div>
+                        <div class="col-6" id="estoque_inicial_group">
+                            <label for="prod_estoque_inicial" class="form-label">Estoque inicial</label>
+                            <input type="number" class="form-control" id="prod_estoque_inicial" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prod_imagem" class="form-label">Imagem</label>
+                        <input type="file" class="form-control" id="prod_imagem" accept="image/*">
+                        <div id="prod_imagem_preview" class="mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Produto</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -31,11 +31,12 @@ try {
     $perfil = 'admin';
     
     // Verificar se a tabela tem coluna 'usuario'
-    $columns = $db->query("SHOW COLUMNS FROM usuarios LIKE 'usuario'");
+    $columns = $db->prepare("SELECT 1 FROM information_schema.columns WHERE table_name = 'usuarios' AND column_name = 'usuario'");
+    $columns->execute();
     if ($columns->rowCount() == 0) {
         // Adicionar coluna usuario se não existir
-        $db->exec("ALTER TABLE usuarios ADD COLUMN usuario VARCHAR(50) UNIQUE AFTER nome");
-        echo "✅ Coluna 'usuario' adicionada à tabela<br>";
+        $db->exec("ALTER TABLE usuarios ADD COLUMN usuario VARCHAR(50) UNIQUE");
+        echo "Coluna 'usuario' adicionada à tabela<br>";
     }
     
     $query = "INSERT INTO usuarios (nome, usuario, email, senha, perfil, ativo) VALUES (?, ?, ?, ?, ?, 1)";

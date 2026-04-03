@@ -11,16 +11,16 @@ try {
     // Criar tabela de perdas se não existir
     $db->exec("
         CREATE TABLE IF NOT EXISTS perdas_estoque (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             produto_id INT NOT NULL,
             quantidade_perdida INT NOT NULL,
             valor_perda DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             estoque_esperado INT NOT NULL DEFAULT 0,
             estoque_real INT NOT NULL DEFAULT 0,
             motivo VARCHAR(255) DEFAULT 'Diferença de inventário',
-            data_identificacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-            visualizada TINYINT(1) DEFAULT 0,
-            data_visualizacao DATETIME NULL,
+            data_identificacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            visualizada SMALLINT DEFAULT 0,
+            data_visualizacao TIMESTAMP NULL,
             observacoes TEXT NULL,
             FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
         )
@@ -31,27 +31,29 @@ try {
     $db->exec("ALTER TABLE perdas_estoque ADD COLUMN IF NOT EXISTS estoque_real INT NOT NULL DEFAULT 0");
     
     // Query para detectar perdas não visualizadas
-    $query = "SELECT 
-                p.id as produto_id,
-                p.nome,
-                cat.nome as categoria,
-                p.estoque_atual,
-                p.estoque_minimo,
-                p.preco,
-                (SELECT COALESCE(SUM(quantidade), 0) 
-                 FROM movimentacoes_estoque me 
-                 WHERE me.produto_id = p.id AND me.tipo = 'entrada') as total_entradas,
-                (SELECT COALESCE(SUM(ic.quantidade), 0) 
-                 FROM itens_comanda ic 
-                 JOIN comandas c ON ic.comanda_id = c.id 
-                 WHERE ic.produto_id = p.id AND c.status = 'fechada') as total_vendido,
-                ((SELECT COALESCE(SUM(quantidade), 0) FROM movimentacoes_estoque WHERE produto_id = p.id AND tipo = 'entrada') - 
-                 (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada') - 
-                 p.estoque_atual) as diferenca_estoque
-              FROM produtos p
-              JOIN categorias cat ON p.categoria_id = cat.id
-              WHERE p.ativo = 1
-              HAVING diferenca_estoque > 0
+    $query = "SELECT * FROM (
+                SELECT
+                  p.id as produto_id,
+                  p.nome,
+                  cat.nome as categoria,
+                  p.estoque_atual,
+                  p.estoque_minimo,
+                  p.preco,
+                  (SELECT COALESCE(SUM(quantidade), 0)
+                   FROM movimentacoes_estoque me
+                   WHERE me.produto_id = p.id AND me.tipo = 'entrada') as total_entradas,
+                  (SELECT COALESCE(SUM(ic.quantidade), 0)
+                   FROM itens_comanda ic
+                   JOIN comandas c ON ic.comanda_id = c.id
+                   WHERE ic.produto_id = p.id AND c.status = 'fechada') as total_vendido,
+                  ((SELECT COALESCE(SUM(quantidade), 0) FROM movimentacoes_estoque WHERE produto_id = p.id AND tipo = 'entrada') -
+                   (SELECT COALESCE(SUM(ic.quantidade), 0) FROM itens_comanda ic JOIN comandas c ON ic.comanda_id = c.id WHERE ic.produto_id = p.id AND c.status = 'fechada') -
+                   p.estoque_atual) as diferenca_estoque
+                FROM produtos p
+                JOIN categorias cat ON p.categoria_id = cat.id
+                WHERE p.ativo = 1
+              ) sub
+              WHERE diferenca_estoque > 0
               ORDER BY diferenca_estoque DESC";
     
     $stmt = $db->prepare($query);

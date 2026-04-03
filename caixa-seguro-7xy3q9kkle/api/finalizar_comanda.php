@@ -76,13 +76,13 @@ try {
             c.data_venda,
             g.nome as garcom_nome,
             g.codigo as garcom_codigo,
-            GROUP_CONCAT(CONCAT(p.nome, '|', ic.quantidade, '|', ic.preco_unitario, '|', ic.subtotal) SEPARATOR ';') as itens
+            STRING_AGG(CONCAT(p.nome, '|', ic.quantidade, '|', ic.preco_unitario, '|', ic.subtotal), ';') as itens
         FROM comandas c
         LEFT JOIN garcons g ON c.garcom_id = g.id
         LEFT JOIN itens_comanda ic ON c.id = ic.comanda_id
         LEFT JOIN produtos p ON ic.produto_id = p.id
         WHERE c.id = ?
-        GROUP BY c.id
+        GROUP BY c.id, c.valor_total, c.taxa_gorjeta, c.data_venda, g.nome, g.codigo
     ";
     
     $stmt_comp = $db->prepare($query_comprovante);
@@ -115,6 +115,9 @@ try {
     exit;
 
 } catch (Exception $e) {
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
     while (ob_get_level()) ob_end_clean();
     http_response_code(500);
     echo json_encode([

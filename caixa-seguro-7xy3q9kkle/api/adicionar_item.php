@@ -1,10 +1,8 @@
    <?php
    // ✅ CORRIGIDO
 require_once __DIR__ . '/../config/paths.php';
-require_once PathConfig::config('database.php'); 
+require_once PathConfig::config('database.php');
 header('Content-Type: application/json; charset=utf-8');
-
-$data = json_decode(file_get_contents('php://input'), true);    
 
 try {
     $database = new Database();
@@ -81,9 +79,10 @@ try {
     if ($item_existente) {
         // Atualizar quantidade do item existente
         $nova_quantidade = $item_existente['quantidade'] + $quantidade;
-        $query_update = "UPDATE itens_comanda SET quantidade = ?, subtotal = ? * ? WHERE id = ?";
+        $novo_subtotal = $produto['preco'] * $nova_quantidade;
+        $query_update = "UPDATE itens_comanda SET quantidade = ?, subtotal = ? WHERE id = ?";
         $stmt_update = $db->prepare($query_update);
-        $stmt_update->execute([$nova_quantidade, $produto['preco'], $nova_quantidade, $item_existente['id']]);
+        $stmt_update->execute([$nova_quantidade, $novo_subtotal, $item_existente['id']]);
     } else {
         // Inserir novo item
         $subtotal = $produto['preco'] * $quantidade;

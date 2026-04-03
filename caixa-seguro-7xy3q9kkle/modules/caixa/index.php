@@ -75,12 +75,21 @@ try {
     $comanda_aberta = null;
     $total_comanda = '0,00';
     $categorias = [];
+    $garcons = [];
 }
-  // BUSCAR GARÇONS ATIVOS
-    $query_garcons = "SELECT id, nome, codigo FROM garcons WHERE ativo = 1 ORDER BY codigo";
-    $stmt_garcons = $db->prepare($query_garcons);
-    $stmt_garcons->execute();
-    $garcons = $stmt_garcons->fetchAll(PDO::FETCH_ASSOC);
+
+// BUSCAR GARÇONS ATIVOS (fora do try principal para não quebrar se a tabela não existir)
+try {
+    if (isset($db)) {
+        $query_garcons = "SELECT id, nome, codigo FROM garcons WHERE ativo = 1 ORDER BY codigo";
+        $stmt_garcons = $db->prepare($query_garcons);
+        $stmt_garcons->execute();
+        $garcons = $stmt_garcons->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) {
+    error_log("Erro ao carregar garçons: " . $e->getMessage());
+    if (!isset($garcons)) $garcons = [];
+}
 ?>
 
 <!DOCTYPE html>

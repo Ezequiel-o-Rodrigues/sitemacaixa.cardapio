@@ -39,10 +39,15 @@ try {
     $stmt_delete = $db->prepare($query_delete);
     $stmt_delete->execute([$item_id, $comanda_id]);
     
-    // Atualizar o total da comanda
-    $query_update = "UPDATE comandas SET valor_total = valor_total - ? WHERE id = ?";
+    // Recalcular o total da comanda para evitar inconsistências
+    $query_total = "SELECT COALESCE(SUM(subtotal), 0) as total FROM itens_comanda WHERE comanda_id = ?";
+    $stmt_total = $db->prepare($query_total);
+    $stmt_total->execute([$comanda_id]);
+    $novo_total = $stmt_total->fetch(PDO::FETCH_ASSOC)['total'];
+
+    $query_update = "UPDATE comandas SET valor_total = ? WHERE id = ?";
     $stmt_update = $db->prepare($query_update);
-    $stmt_update->execute([$item['subtotal'], $comanda_id]);
+    $stmt_update->execute([$novo_total, $comanda_id]);
     
     echo json_encode(['success' => true, 'message' => 'Item removido com sucesso']);
     

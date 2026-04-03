@@ -21,7 +21,8 @@ if (file_exists($database_path)) {
         // Testar se tabelas existem
         $tables = ['comandas', 'itens_comanda', 'produtos'];
         foreach ($tables as $table) {
-            $stmt = $db->query("SHOW TABLES LIKE '$table'");
+            $stmt = $db->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = ?");
+            $stmt->execute([$table]);
             $exists = $stmt->fetch() ? 'SIM' : 'NÃO';
             echo "Tabela $table: $exists\n";
         }

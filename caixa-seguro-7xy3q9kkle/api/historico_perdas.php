@@ -23,7 +23,7 @@ try {
     }
     // Filtro por mês/ano (formato: YYYY-MM)
     elseif ($mes_ano) {
-        $where_conditions[] = "DATE_FORMAT(pe.data_identificacao, '%Y-%m') = ?";
+        $where_conditions[] = "TO_CHAR(pe.data_identificacao, 'YYYY-MM') = ?";
         $params[] = $mes_ano;
     }
     

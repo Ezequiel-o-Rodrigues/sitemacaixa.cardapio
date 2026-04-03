@@ -41,8 +41,14 @@ try {
 function resolveImagePath($imagem) {
     $default = 'images/menu/default.jpg';
     if (empty($imagem)) return $default;
-    
-    // Check various old dynamic paths just in case the name matches old system files
+
+    // Primeiro verificar diretório moderno de produtos (admin novo)
+    $modern_path = __DIR__ . '/../caixa-seguro-7xy3q9kkle/public/images/products/' . $imagem;
+    if (file_exists($modern_path)) {
+        return '../caixa-seguro-7xy3q9kkle/public/images/products/' . htmlspecialchars($imagem);
+    }
+
+    // Fallback: diretórios legados
     $paths_to_check = [
         'images/menu/espetos/',
         'images/menu/porcoes/',
@@ -51,13 +57,13 @@ function resolveImagePath($imagem) {
         'images/menu/opcoes_buffet/',
         'images/menu/'
     ];
-    
+
     foreach ($paths_to_check as $dir) {
         if (file_exists($dir . $imagem)) {
             return $dir . htmlspecialchars($imagem);
         }
     }
-    
+
     return $default;
 }
 ?>

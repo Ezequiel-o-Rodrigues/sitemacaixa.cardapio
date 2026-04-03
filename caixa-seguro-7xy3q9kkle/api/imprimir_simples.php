@@ -16,13 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Buscar dados da comanda
         $query = "SELECT c.id as comanda_id, c.valor_total, c.data_venda, 
                          g.nome as garcom_nome,
-                         GROUP_CONCAT(CONCAT(p.nome, '|', ic.quantidade, '|', ic.subtotal) SEPARATOR ';') as itens
+                         STRING_AGG(CONCAT(p.nome, '|', ic.quantidade, '|', ic.subtotal), ';') as itens
                   FROM comandas c
                   LEFT JOIN garcons g ON c.garcom_id = g.id
                   LEFT JOIN itens_comanda ic ON c.id = ic.comanda_id
                   LEFT JOIN produtos p ON ic.produto_id = p.id
                   WHERE c.id = (SELECT comanda_id FROM comprovantes_venda WHERE id = :id)
-                  GROUP BY c.id";
+                  GROUP BY c.id, c.valor_total, c.data_venda, g.nome";
         
         $stmt = $db->prepare($query);
         $stmt->bindParam(':id', $comprovante_id);

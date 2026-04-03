@@ -11,24 +11,23 @@ $ano = $_GET['ano'] ?? date('Y');
 
 try {
     // Verificar se a view existe, senão usar query direta
-    $query_check = "SHOW TABLES LIKE 'view_vendas_mensais'";
-    $stmt_check = $db->prepare($query_check);
+    $stmt_check = $db->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = 'view_vendas_mensais'");
     $stmt_check->execute();
-    
+
     if ($stmt_check->rowCount() > 0) {
         $query = "SELECT * FROM view_vendas_mensais WHERE ano = :ano ORDER BY mes";
     } else {
-        $query = "SELECT 
-                    CONCAT(YEAR(data_venda), '-', LPAD(MONTH(data_venda), 2, '0')) as mes_ano,
-                    YEAR(data_venda) as ano,
-                    MONTH(data_venda) as mes,
+        $query = "SELECT
+                    TO_CHAR(data_venda, 'YYYY-MM') as mes_ano,
+                    EXTRACT(YEAR FROM data_venda)::INT as ano,
+                    EXTRACT(MONTH FROM data_venda)::INT as mes,
                     COUNT(id) as total_comandas,
                     COALESCE(SUM(valor_total), 0) as valor_total_vendas,
                     COALESCE(SUM(taxa_gorjeta), 0) as total_gorjetas,
                     COALESCE(AVG(valor_total), 0) as ticket_medio
-                  FROM comandas 
-                  WHERE status = 'fechada' AND YEAR(data_venda) = :ano
-                  GROUP BY YEAR(data_venda), MONTH(data_venda)
+                  FROM comandas
+                  WHERE status = 'fechada' AND EXTRACT(YEAR FROM data_venda) = :ano
+                  GROUP BY EXTRACT(YEAR FROM data_venda), EXTRACT(MONTH FROM data_venda)
                   ORDER BY mes";
     }
     
